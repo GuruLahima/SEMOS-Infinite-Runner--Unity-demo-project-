@@ -10,6 +10,23 @@ public class CatController : MonoBehaviour
     public CharacterState charState;
     [SerializeField] private float moveDuration;
     [SerializeField] private Ease moveEase;
+    public Animator anim;
+    public Transform coll;
+
+    [Header("Jump params")]
+
+    public float collMinPos;
+    public float collMaxPos;
+    public float collAnimDuration;
+    public Ease jumpUpEase;
+    public Ease jumpDownEase;
+
+    [Header("Slide params")]
+    public float collSlideMin;
+    public float collSlideAnimDuration;
+    public Ease slideDownEase;
+    public Ease slideUpEase;
+
 
     public List<Vector3> positions = new List<Vector3>();
 
@@ -31,7 +48,59 @@ public class CatController : MonoBehaviour
     void Update()
     {
         SwitchLane();
+        Jump();
+        Slide();
     }
+
+    private void Jump()
+    {
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isMoving)
+        {
+            isMoving = true;
+            // play anim
+            anim.ResetTrigger("Jump");
+            anim.SetTrigger("Jump");
+
+            // animate collider
+            coll.DOLocalMoveY(collMaxPos, collAnimDuration / 2).SetEase(jumpUpEase).OnComplete(
+                () =>
+                {
+                    Debug.Log("Jumping reached highest point");
+                    coll.DOLocalMoveY(collMinPos, collAnimDuration / 2).SetEase(jumpDownEase).OnComplete(
+                        () =>
+                        {
+                            isMoving = false;
+                        }
+                    );
+                }
+             );
+        }
+    }
+
+    void Slide()
+    {
+        if (Input.GetKeyDown(KeyCode.DownArrow) && !isMoving)
+        {
+            isMoving = true;
+            // play anim
+            anim.ResetTrigger("Slide");
+            anim.SetTrigger("Slide");
+
+            // animate collider
+            coll.DOLocalMoveY(collSlideMin, collSlideAnimDuration / 2).SetEase(slideDownEase).OnComplete(
+                () =>
+                {
+                    coll.DOLocalMoveY(collMinPos, collSlideAnimDuration / 2).SetEase(slideUpEase).OnComplete(
+                        () =>
+                        {
+                            isMoving = false;
+                        }
+                    );
+                }
+             );
+        }
+    }
+
     private bool isMoving;
 
     void SwitchLane()
@@ -57,13 +126,12 @@ public class CatController : MonoBehaviour
                 }
             );
 
-
             // "move" the list items to the right
             Vector3 tempvec = positions[2];
             positions.RemoveAt(2);
             positions.Insert(0, tempvec);
         }
-        else if (!isMoving && Input.GetKeyDown(KeyCode.RightArrow) &&  charState != CharacterState.Right)
+        else if (!isMoving && Input.GetKeyDown(KeyCode.RightArrow) && charState != CharacterState.Right)
         {
             isMoving = true;
 
@@ -75,6 +143,7 @@ public class CatController : MonoBehaviour
             {
                 charState = CharacterState.Center;
             }
+
 
             transform.DOMove(positions[2], moveDuration, false).SetEase(moveEase).OnComplete(
                 () =>
