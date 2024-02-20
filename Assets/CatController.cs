@@ -1,4 +1,4 @@
-using System.Collections;
+// using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
@@ -47,9 +47,52 @@ public class CatController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        SwitchLane();
+        // SwitchLane();
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began)
+            {
+                float touchX = touch.position.x;
+                if (touchX < Screen.width / 2)
+                {
+                    MoveLeft();
+                }
+                else
+                {
+                    MoveRight();
+                }
+            }
+        }
+
         Jump();
         Slide();
+    }
+
+    private void MoveLeft()
+    {
+        if (!isMoving && charState != CharacterState.Left)
+        {
+            isMoving = true;
+            charState = CharacterState.Left;
+            transform.DOMove(positions[0], moveDuration).SetEase(moveEase).OnComplete(() =>
+            {
+                isMoving = false;
+            });
+        }
+    }
+
+    private void MoveRight()
+    {
+        if (!isMoving && charState != CharacterState.Right)
+        {
+            isMoving = true;
+            charState = CharacterState.Right;
+            transform.DOMove(positions[2], moveDuration).SetEase(moveEase).OnComplete(() =>
+            {
+                isMoving = false;
+            });
+        }
     }
 
     private void Jump()
