@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using System;
 
 public class CatController : MonoBehaviour
 {
@@ -20,6 +21,8 @@ public class CatController : MonoBehaviour
     public float collAnimDuration;
     public Ease jumpUpEase;
     public Ease jumpDownEase;
+    public float jumpSwipeThreshold;
+
 
     [Header("Slide params")]
     public float collSlideMin;
@@ -42,19 +45,112 @@ public class CatController : MonoBehaviour
         positions.Add(centerPos);
         positions.Add(centerPos + Vector3.right * moveDistance);
 
+        // Cursor.visible = false;
+        // Cursor.lockState = CursorLockMode.None;
     }
 
     // Update is called once per frame
     void Update()
     {
+        HandleInput();
         SwitchLane();
         Jump();
         Slide();
     }
 
+    private void HandleInput()
+    {
+        touchedLeft = false;
+        touchedRight = false;
+        swipedUp = false;
+        swipedDown = false;
+
+#if UNITY_ANDROID
+        /*         if (Input.touchCount > 0)
+                {
+                    Touch touch = Input.GetTouch(0);
+                    if (touch.phase == TouchPhase.Began)
+                    {
+                        startYPos = touch.position.y;
+                    }
+                    else if (touch.phase == TouchPhase.Moved)
+                    {
+                        float newYPos = touch.position.y;
+                        float yDelta = newYPos - startYPos;
+
+                        if (yDelta / Screen.height > jumpSwipeThreshold)
+                        {
+                            swipedUp = true;
+                        }
+                        else if (Mathf.Abs(yDelta / Screen.height) > jumpSwipeThreshold)
+                        {
+                            swipedDown = true;
+                        }
+                    }
+                    else if (touch.phase == TouchPhase.Ended)
+                    {
+                        float xPos = touch.position.x;
+                        if (xPos < Screen.width / 2)
+                        {
+                            // player touched on the left side of the screen
+                            touchedLeft = true;
+                        }
+                        else
+                        {
+                            // player touched on the right side of the screen
+                            touchedRight = true;
+                        }
+                    }
+                }
+         */
+
+
+#endif
+#if UNITY_EDITOR
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            touchedLeft = true;
+        }
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            touchedRight = true;
+        }
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            swipedUp = true;
+        }
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            swipedDown = true;
+        }
+#endif
+
+        if (SimpleInput.GetButtonDown("MoveLeft"))
+        {
+            touchedLeft = true;
+        }
+        else if (SimpleInput.GetButtonDown("MoveRight"))
+        {
+            touchedRight = true;
+        }
+        else if (SimpleInput.GetButtonDown("Jump"))
+        {
+            swipedUp = true;
+        }
+        else if (SimpleInput.GetButtonDown("Slide"))
+        {
+            swipedDown = true;
+        }
+    }
+
+    float startYPos = 0;
+    bool swipedUp = false;
+    bool swipedDown = false;
     private void Jump()
     {
-        if (Input.GetKeyDown(KeyCode.UpArrow) && !isMoving)
+
+        if (swipedUp && !isMoving)
         {
             isMoving = true;
             // play anim
@@ -79,7 +175,7 @@ public class CatController : MonoBehaviour
 
     void Slide()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow) && !isMoving)
+        if (swipedDown && !isMoving)
         {
             isMoving = true;
             // play anim
@@ -102,11 +198,11 @@ public class CatController : MonoBehaviour
     }
 
     private bool isMoving;
-
+    private bool touchedLeft;
+    private bool touchedRight;
     void SwitchLane()
     {
-
-        if (!isMoving && Input.GetKeyDown(KeyCode.LeftArrow) && charState != CharacterState.Left)
+        if (!isMoving && touchedLeft && charState != CharacterState.Left)
         {
             isMoving = true;
 
@@ -125,13 +221,19 @@ public class CatController : MonoBehaviour
                     isMoving = false;
                 }
             );
+            transform.DOLocalRotate(Vector3.up * -90, moveDuration / 2).OnComplete(
+                () =>
+                {
+                    transform.DOLocalRotate(Vector3.zero, moveDuration / 2);
+                }
+            );
 
             // "move" the list items to the right
             Vector3 tempvec = positions[2];
             positions.RemoveAt(2);
             positions.Insert(0, tempvec);
         }
-        else if (!isMoving && Input.GetKeyDown(KeyCode.RightArrow) && charState != CharacterState.Right)
+        else if (!isMoving && touchedRight && charState != CharacterState.Right)
         {
             isMoving = true;
 
@@ -144,20 +246,23 @@ public class CatController : MonoBehaviour
                 charState = CharacterState.Center;
             }
 
-
             transform.DOMove(positions[2], moveDuration, false).SetEase(moveEase).OnComplete(
                 () =>
                 {
                     isMoving = false;
                 }
             );
-
+            transform.DOLocalRotate(Vector3.up * 90, moveDuration / 2).OnComplete(
+                () =>
+                {
+                    transform.DOLocalRotate(Vector3.zero, moveDuration / 2);
+                }
+            );
 
             // "move" the list items to the left
             Vector3 tempvec = positions[0];
             positions.RemoveAt(0);
             positions.Add(tempvec);
-
         }
 
     }
