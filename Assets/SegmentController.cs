@@ -58,8 +58,8 @@ public class SegmentController : MonoBehaviour
             GameObject newObstacle = Instantiate(possibleObstacles[randIndex], this.transform);
 
             int randomSpawnPoint = Random.Range(0, possibleSpawnPoints.Count);
-            Debug.Log("random spawn point index: " + randomSpawnPoint);
-            Debug.Log("random pos: " + possibleSpawnPoints[randomSpawnPoint].transform.position);
+            // Debug.Log("random spawn point index: " + randomSpawnPoint);
+            // Debug.Log("random pos: " + possibleSpawnPoints[randomSpawnPoint].transform.position);
             newObstacle.transform.position = possibleSpawnPoints[randomSpawnPoint].transform.position;
         }
 

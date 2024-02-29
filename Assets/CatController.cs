@@ -45,6 +45,16 @@ public class CatController : MonoBehaviour
         positions.Add(centerPos);
         positions.Add(centerPos + Vector3.right * moveDistance);
 
+        // Transform
+        // Vector3
+        // GetComponent
+        // GameObject
+        // Input
+  
+        Input.GetButton()
+        
+
+
         // Cursor.visible = false;
         // Cursor.lockState = CursorLockMode.None;
     }
@@ -265,6 +275,14 @@ public class CatController : MonoBehaviour
             positions.Add(tempvec);
         }
 
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+
+        Time.timeScale = 0;
+
+        InterstitialAdExample.Instance.LoadAd();
     }
 }
 
