@@ -5,8 +5,11 @@ using NaughtyAttributes;
 
 public class ObjectPoolSystem : MonoBehaviour
 {
-    public GameObject objectPrefab;
-    public Queue<GameObject> pool = new Queue<GameObject>();
+    // singleton pattern
+    public static ObjectPoolSystem Instance;
+
+    public List<GameObject> objectPrefabs = new List<GameObject>();
+    public List<GameObject> pool = new List<GameObject>();
 
     public int poolSize = 10;
 
@@ -14,12 +17,24 @@ public class ObjectPoolSystem : MonoBehaviour
 
     private void Start()
     {
+        // also singleton code
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(this);
+        }
+
+
         // initialize the object pool
         for (int i = 0; i < poolSize; i++)
         {
-            GameObject newObj = Instantiate(objectPrefab);
+            int randomIndex = Random.Range(0, objectPrefabs.Count);
+            GameObject newObj = Instantiate(objectPrefabs[randomIndex]);
             newObj.SetActive(false);
-            pool.Enqueue(newObj);
+            pool.Add(newObj);
         }
     }
 
@@ -34,7 +49,8 @@ public class ObjectPoolSystem : MonoBehaviour
 
         if (pool.Count > 0)
         {
-            GameObject newObj = pool.Dequeue();
+            int randIndex = Random.Range(0, pool.Count);
+            GameObject newObj = pool[randIndex];
             newObj.SetActive(true);
             return newObj;
         }
@@ -54,6 +70,6 @@ public class ObjectPoolSystem : MonoBehaviour
     public void ReturnObject(GameObject go)
     {
         go.SetActive(false);
-        pool.Enqueue(go);
+        pool.Add(go);
     }
 }
